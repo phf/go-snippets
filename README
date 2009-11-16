@@ -6,3 +6,7 @@ Go students unite! :-D
 freq/
 	Clones of freq.c from Kernighan and Pike: The Practice
 	of Programming.
+
+rmhttpd/
+	Clones of my friend Raluca's twitter-sized web server.
+	Not really twitter-sized in Go though.
