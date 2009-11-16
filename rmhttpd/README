@@ -1,0 +1,11 @@
+There are three HTTP servers here, two in Go and the
+one by Raluca that inspired me (slighty modified). I
+found it hard to resist error checking at first, so
+maybe all those error results in the documentation do
+encourage people to check. Checking all of them is,
+however, quite painful. So sadly this experiment did
+not help me to figure out if I want exceptions in Go
+or not. :-/
+
+All of these are toys, use them as such. Don't start
+uninstalling Apache. :-D
