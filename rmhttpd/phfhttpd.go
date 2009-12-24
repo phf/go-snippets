@@ -53,28 +53,15 @@ func handle_connection(connection io.ReadWriter) {
 }
 
 func read_request(connection io.Reader) (request string, path string, error os.Error) {
-	request = ""
-	path = ""
-	length := 0
-
+	// TODO: how do we know that the request is over?
 	buffer := make([]byte, 1024)
-	length, error = connection.Read(buffer)
+	_, error = connection.Read(buffer)
 
 	if error != nil {
 		return
 	}
 
-	// KLUDGE: if we filled the buffer we assume we missed
-	// part of the request
-	if length <= 0 || length >= 1024 {
-		error = os.NewError("incomplete HTTP request")
-		return
-	}
-
-	// TODO: tabs can be separators as well in HTTP,
-	// as can multiple spaces; Python's split() is a
-	// bit more useful... :-/
-	tokens := strings.Split(string(buffer), " ", 0)
+	tokens := strings.Fields(string(buffer))
 	if len(tokens) < 2 {
 		error = os.NewError("incomplete HTTP request")
 		return
