@@ -23,20 +23,20 @@ import "os"
 import "io"
 
 func main() {
-	listener, _ := net.Listen("tcp", ":8080");
+	listener, _ := net.Listen("tcp", ":8080")
 
 	for {
-		connection, _ := listener.Accept();
+		connection, _ := listener.Accept()
 
-		buffer := make([]byte, 1024);
-		connection.Read(buffer);
+		buffer := make([]byte, 1024)
+		connection.Read(buffer)
 
-		tokens := strings.Split(string(buffer), " ", 0);
+		tokens := strings.Split(string(buffer), " ", 0)
 
-		file, _ := os.Open("." + tokens[1], os.O_RDONLY, 0);
-		io.Copy(connection, file);
-		file.Close();
+		file, _ := os.Open("."+tokens[1], os.O_RDONLY, 0)
+		io.Copy(connection, file)
+		file.Close()
 
-		connection.Close();
+		connection.Close()
 	}
 }
