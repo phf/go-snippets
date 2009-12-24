@@ -14,6 +14,7 @@ import "net"
 import "strings"
 import "os"
 import "io"
+import "fmt"
 
 const timeoutSeconds = 4
 
@@ -73,23 +74,34 @@ func read_request(connection io.Reader) (request string, path string, error os.E
 }
 
 func send_response(connection io.Writer, request string, path string) (error os.Error) {
-	var file *os.File = nil
-	error = nil
+	var file *os.File
+	var dir *os.Dir
 
-	if strings.ToUpper(request) == "GET" {
-		// TODO: use Lstat to check for directory, listing it if
-		// possible; currently we just fail for directories...
-		file, error = os.Open(path, os.O_RDONLY, 0)
-		if error == nil {
-			connection.Write(strings.Bytes("HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n\r\n"))
-			io.Copy(connection, file)
-			file.Close()
-		} else {
-			connection.Write(strings.Bytes("HTTP/1.0 400 Bad Request\r\nContent-Type: text/html\r\n\r\n<html><h1>400 Bad Request</h1></html>"))
-		}
-	} else {
+	if strings.ToUpper(request) != "GET" {
 		connection.Write(strings.Bytes("HTTP/1.0 500 Internal Server Error\r\nContent-Type: text/html\r\n\r\n<html><h1>500 Internal Server Error</h1></html>"))
+		error = os.NewError("only GET is implemented")
+		return
 	}
 
+	dir, error = os.Lstat(path)
+	if error != nil || (!dir.IsRegular() && !dir.IsDirectory()) {
+		connection.Write(strings.Bytes("HTTP/1.0 400 Bad Request\r\nContent-Type: text/html\r\n\r\n<html><h1>400 Bad Request</h1></html>"))
+		return
+	}
+
+	if dir.IsDirectory() {
+		file, _ = os.Open(path, os.O_RDONLY, 0)
+		names, _ := file.Readdirnames(-1)
+		connection.Write(strings.Bytes("HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n"))
+		for _, name := range names {
+			connection.Write(strings.Bytes(fmt.Sprintf("<a href=\"%s\">%s</a><br/>\n", name, name)))
+		}
+		return
+	}
+
+	file, _ = os.Open(path, os.O_RDONLY, 0)
+	connection.Write(strings.Bytes("HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n\r\n"))
+	io.Copy(connection, file)
+	file.Close()
 	return
 }
