@@ -12,29 +12,25 @@ import "os"
 import "bufio"
 import "unicode"
 
-var histogram = make([]int, unicode.MaxRune+1);
+var histogram = make([]int, unicode.MaxRune+1)
 
 func printable(char int) int {
 	// kludge: no unicode.IsPrint() in library?
 	if char >= 32 {
-		return char;
+		return char
 	}
-	return '-';
+	return '-'
 }
 
 func main() {
-	reader := bufio.NewReader(os.Stdin);
-	for
-		rune, _, error := reader.ReadRune();
-		error == nil;
-		rune, _, error = reader.ReadRune()
-	{
-		histogram[rune] = histogram[rune] + 1;
+	reader := bufio.NewReader(os.Stdin)
+	for rune, _, error := reader.ReadRune(); error == nil; rune, _, error = reader.ReadRune() {
+		histogram[rune] = histogram[rune] + 1
 	}
 
 	for key, value := range histogram {
 		if (value > 0) {
-			fmt.Printf("%.2x  %c  %d\n", key, printable(key), value);
+			fmt.Printf("%.2x  %c  %d\n", key, printable(key), value)
 		}
 	}
 }
