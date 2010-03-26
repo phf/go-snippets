@@ -17,6 +17,7 @@ import "io"
 import "fmt"
 
 const timeoutSeconds = 4
+const timeoutNanos = timeoutSeconds * 1000 * 1000 * 1000
 
 func main() {
 	// we consider connection-level errors fatal and panic
@@ -30,7 +31,7 @@ func main() {
 		connection, error := listener.Accept()
 		check(error)
 
-		error = connection.SetTimeout(timeoutSeconds * 1000 * 1000 * 1000)
+		error = connection.SetTimeout(timeoutNanos)
 		check(error)
 
 		handle_connection(connection)
