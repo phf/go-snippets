@@ -78,29 +78,29 @@ func send_response(connection io.Writer, request string, path string) (error os.
 	var dir *os.Dir
 
 	if strings.ToUpper(request) != "GET" {
-		connection.Write(strings.Bytes("HTTP/1.0 500 Internal Server Error\r\nContent-Type: text/html\r\n\r\n<html><h1>500 Internal Server Error</h1></html>"))
+		connection.Write([]byte("HTTP/1.0 500 Internal Server Error\r\nContent-Type: text/html\r\n\r\n<html><h1>500 Internal Server Error</h1></html>"))
 		error = os.NewError("only GET is implemented")
 		return
 	}
 
 	dir, error = os.Lstat(path)
 	if error != nil || (!dir.IsRegular() && !dir.IsDirectory()) {
-		connection.Write(strings.Bytes("HTTP/1.0 400 Bad Request\r\nContent-Type: text/html\r\n\r\n<html><h1>400 Bad Request</h1></html>"))
+		connection.Write([]byte("HTTP/1.0 400 Bad Request\r\nContent-Type: text/html\r\n\r\n<html><h1>400 Bad Request</h1></html>"))
 		return
 	}
 
 	if dir.IsDirectory() {
 		file, _ = os.Open(path, os.O_RDONLY, 0)
 		names, _ := file.Readdirnames(-1)
-		connection.Write(strings.Bytes("HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n"))
+		connection.Write([]byte("HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n"))
 		for _, name := range names {
-			connection.Write(strings.Bytes(fmt.Sprintf("<a href=\"%s\">%s</a><br/>\n", name, name)))
+			connection.Write([]byte(fmt.Sprintf("<a href=\"%s\">%s</a><br/>\n", name, name)))
 		}
 		return
 	}
 
 	file, _ = os.Open(path, os.O_RDONLY, 0)
-	connection.Write(strings.Bytes("HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n\r\n"))
+	connection.Write([]byte("HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n\r\n"))
 	io.Copy(connection, file)
 	file.Close()
 	return
