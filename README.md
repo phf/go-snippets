@@ -10,9 +10,12 @@ so I had to update this file as well. I may eventually have time to
 - confrac/ A concurrent remix of the fractal program from
 *Donovan & Kernighan: The Go Programming Language*.
 
-## Ancient Snippets (need updating)
+## Ancient Snippets (already updated)
 
 - freq/ Various clones of freq.c from *Kernighan & Pike: The Practice
 of Programming*.
+
+## Ancient Snippets (need updating)
+
 - rmhttpd/ Two clones of my friend Raluca's twitter-sized web server.
 Not really twitter-sized in Go though.
