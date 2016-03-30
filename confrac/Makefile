@@ -1,4 +1,6 @@
-all: single cores
+ALL=single cores pixels
+
+all: $(ALL)
 
 single: single.go fractals.go
 	go build $^
@@ -6,10 +8,14 @@ single: single.go fractals.go
 cores: cores.go fractals.go
 	go build $^
 
-bench: single cores
-	time ./single >single.png
-	time ./cores >cores.png
+pixels: pixels.go fractals.go
+	go build $^
+
+bench: $(ALL)
+	./xtime ./single >single.png
+	./xtime ./cores >cores.png
+	./xtime ./pixels >pixels.png
 	md5sum *.png
 
 clean:
-	rm -rf single cores *.png
+	rm -rf single cores pixels *.png
