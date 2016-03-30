@@ -1,29 +1,24 @@
-TESTFILE=/usr/share/dict/cracklib-small
-GOCC=8g
-GOLD=8l
+TESTFILE=/usr/share/dict/web2
+ALL=freq simple_freq complex_freq
+CFLAGS=-std=c11 -Wall -Wextra -Wpedantic -O2
 
-all: freq simple_freq complex_freq
+all: $(ALL)
 
 freq: freq.c
 
-simple_freq: simple_freq.8
-	8l -o simple_freq simple_freq.8
-simple_freq.8: simple_freq.go
-	8g simple_freq.go
-
-complex_freq: complex_freq.8
-	8l -o complex_freq complex_freq.8
-complex_freq.8: complex_freq.go
-	8g complex_freq.go
+simple_freq: simple_freq.go
+	go build $^
+complex_freq: complex_freq.go
+	go build $^
 
 clean:
-	rm -rf *.6 *.8 freq simple_freq complex_freq *.out
+	rm -rf $(ALL) *.out
 
-test:
-	time ./freq <${TESTFILE} >freq.out
-	time ./simple_freq <${TESTFILE} >simple_freq.out
-	time ./complex_freq <${TESTFILE} >complex_freq.out
-	time python freq.py <${TESTFILE} >python_freq.out
+bench: $(ALL)
+	./xtime ./freq <${TESTFILE} >freq.out
+	./xtime ./simple_freq <${TESTFILE} >simple_freq.out
+	./xtime ./complex_freq <${TESTFILE} >complex_freq.out
+	./xtime python freq.py <${TESTFILE} >python_freq.out
 	diff freq.out simple_freq.out
 	diff simple_freq.out complex_freq.out
 	diff complex_freq.out python_freq.out
