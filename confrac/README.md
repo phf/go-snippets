@@ -13,9 +13,8 @@ The first concurrent version is *sane* because it starts one goroutine
 for each *core* the machine has. The second concurrent version is
 *insane* because it starts one goroutine for each *pixel* we render.
 Imagine my surprise when I find that even the insane version finishes
-in a reasonable amount of time; it just needs a *lot* of memory.
-The sane version even gives me a decent speedup (on ancient hardware,
-didn't test it on a 24-core machine yet).
+in a reasonable amount of time; it just needs a *lot* of memory on most
+platforms. The sane version even gives me a decent speedup (see below)!
 
 ## Running
 
@@ -36,7 +35,33 @@ ancient AMD Athlon 64 X2 with two cores, I get this:
 	3.30u 0.09s 1.81r 294480kB ./pixels
 
 That's actually pretty impressive. I mean that's 1,048,576 goroutines
-being launched. Try doing that with threads.
+being launched! Try doing that with threads. Here's my slightly newer
+laptop with four cores:
+
+	./xtime ./single >single.png
+	0.80u 0.00s 0.81r 7684kB ./single
+
+	./xtime ./cores >cores.png
+	0.99u 0.00s 0.53r 7856kB ./cores
+
+	./xtime ./pixels >pixels.png
+	2.42u 0.11s 0.86r 63344kB ./pixels
+
+And here's some big-ish machine with 24 cores that our department has
+lying around for undergraduates:
+
+	./xtime ./single >single.png
+	0.93u 0.07s 0.90r 12864kB ./single
+
+	./xtime ./cores >cores.png
+	1.33u 0.09s 0.32r 17072kB ./cores
+
+	./xtime ./pixels >pixels.png
+	7.74u 5.45s 1.21r 16388kB ./pixels
+
+It's nice to see that the sane version actually scales with the number
+of cores. But what fascinates me is the difference in memory usage. If
+you have a good explanation, be sure to contact me!
 
 ## License
 
