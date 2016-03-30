@@ -7,29 +7,30 @@
 
 package main
 
-import "fmt"
-import "os"
-import "bufio"
-import "unicode"
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"unicode"
+)
 
 var histogram = make([]int, unicode.MaxRune+1)
 
 func printable(char int) int {
-	// kludge: no unicode.IsPrint() in library?
-	if char >= 32 {
+	if unicode.IsPrint(rune(char)) {
 		return char
 	}
 	return '-'
 }
 
 func main() {
-	reader := bufio.NewReader(os.Stdin)
-	for rune, _, error := reader.ReadRune(); error == nil; rune, _, error = reader.ReadRune() {
-		histogram[rune] = histogram[rune] + 1
+	r := bufio.NewReader(os.Stdin)
+	for c, _, err := r.ReadRune(); err == nil; c, _, err = r.ReadRune() {
+		histogram[c]++
 	}
 
 	for key, value := range histogram {
-		if (value > 0) {
+		if value > 0 {
 			fmt.Printf("%.2x  %c  %d\n", key, printable(key), value)
 		}
 	}

@@ -7,38 +7,38 @@
 
 package main
 
-import "fmt"
-import "os"
-import "bufio"
-import "sort"
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"sort"
+	"unicode"
+)
 
-var histogram = make(map[int] int)
+var histogram = make(map[int]int)
 
 func printable(char int) int {
-	// kludge: no unicode.IsPrint() in library?
-	if char >= 32 {
+	if unicode.IsPrint(rune(char)) {
 		return char
 	}
 	return '-'
 }
 
 func build_histogram() {
-	reader := bufio.NewReader(os.Stdin)
-
-	for rune, _, error := reader.ReadRune(); error == nil; rune, _, error = reader.ReadRune() {
-		count, _ := histogram[rune]
-		histogram[rune] = count + 1
+	r := bufio.NewReader(os.Stdin)
+	for c, _, err := r.ReadRune(); err == nil; c, _, err = r.ReadRune() {
+		histogram[int(c)]++
 	}
 }
 
-func sort_keys(dict map[int] int) []int {
+func sort_keys(dict map[int]int) []int {
 	keys := make([]int, len(dict))
 	i := 0
 	for key, _ := range dict {
 		keys[i] = key
 		i++
 	}
-	sort.SortInts(keys)
+	sort.Ints(keys)
 	return keys
 }
 
