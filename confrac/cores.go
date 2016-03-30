@@ -36,12 +36,19 @@ func main() {
 	runtime.GOMAXPROCS(ncpu)
 
 	slice := height / ncpu
+	leftover := height % ncpu
 
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
 
 	for i := 0; i < ncpu; i++ {
+		ys := i*slice
 		wg.Add(1)
-		go render(0, i*slice, width, i*slice+slice, img)
+		go render(0, ys, width, ys+slice, img)
+	}
+	if leftover != 0 {
+		ys := ncpu*slice
+		wg.Add(1)
+		go render(0, ys, width, ys+leftover, img)
 	}
 	wg.Wait()
 
