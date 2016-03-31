@@ -15,7 +15,7 @@ bench: $(ALL)
 	./xtime ./single >single.png
 	./xtime ./cores >cores.png
 	./xtime ./pixels >pixels.png
-	md5sum *.png
+	diff --from-file *.png
 
 clean:
 	rm -rf single cores pixels *.png
