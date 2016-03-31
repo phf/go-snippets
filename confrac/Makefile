@@ -12,10 +12,10 @@ pixels: pixels.go fractals.go
 	go build $^
 
 bench: $(ALL)
-	./xtime ./single >single.png
-	./xtime ./cores >cores.png
-	./xtime ./pixels >pixels.png
+	./xtime ./single >single.out.png
+	./xtime ./cores >cores.out.png
+	./xtime ./pixels >pixels.out.png
 	diff --from-file *.png
 
 clean:
-	rm -rf single cores pixels *.png
+	rm -rf single cores pixels *.out.png
