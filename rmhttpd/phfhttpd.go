@@ -1,108 +1,122 @@
 /*
 	A web server inspired by my friend Raluca. Her's is
 	128 bytes of Python. The Go version is a bit longer
-	but who cares. :-D There are two versions, this one
-	tries to do proper error checking and implements a
-	minimal HTTP protocol as well.
-
-	http://ralucam.tumblr.com/post/178403091/twitcode
+	but who cares. There are two versions, this one tries
+	to do some error checking, supports directory listings,
+	and implements a minimal HTTP protocol as well.
 */
 
 package main
 
-import "net"
-import "strings"
-import "os"
-import "io"
-import "fmt"
+import (
+	"errors"
+	"fmt"
+	"io"
+	"net"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+)
 
-const timeoutSeconds = 4
-const timeoutNanos = timeoutSeconds * 1000 * 1000 * 1000
+const (
+	timeout                  = time.Second * 4
+	folkloreMaxRequestLength = 8192
+)
 
-func main() {
-	// we consider connection-level errors fatal and panic
-	// for those; not suitable for a real web server, but
-	// then none of the functions/methods we call on this
-	// level *should* fail on a properly configured system
-	listener, error := net.Listen("tcp", "localhost:8080")
-	check(error)
-
-	for {
-		connection, error := listener.Accept()
-		check(error)
-
-		error = connection.SetTimeout(timeoutNanos)
-		check(error)
-
-		handle_connection(connection)
-
-		error = connection.Close()
-		check(error)
+// Abort with a panic if there was an error. Not exactly suitable for a
+// production server, is it? Well, we're mostly interested in concision,
+// not reliability.
+func check(err error) {
+	if err != nil {
+		panic(err)
 	}
 }
 
-func check(error os.Error) {
-	if error != nil {
-		panic(error.String())
-	}
-}
-
-func handle_connection(connection io.ReadWriter) {
-	request, path, error := read_request(connection)
-	if error == nil {
-		send_response(connection, request, "."+path)
-	}
-}
-
-func read_request(connection io.Reader) (request string, path string, error os.Error) {
-	// TODO: how do we know that the request is over?
-	buffer := make([]byte, 1024)
-	_, error = connection.Read(buffer)
-
-	if error != nil {
-		return
+// Read an HTTP request. The returned path is not sanitized.
+func readRequest(conn io.Reader) (req string, path string, err error) {
+	buffer := make([]byte, folkloreMaxRequestLength)
+	_, err = conn.Read(buffer)
+	if err != nil {
+		return "", "", err
 	}
 
 	tokens := strings.Fields(string(buffer))
 	if len(tokens) < 2 {
-		error = os.NewError("incomplete HTTP request")
-		return
+		err = errors.New("incomplete HTTP request")
+		return "", "", err
 	}
 
-	request = tokens[0]
+	req = tokens[0]
 	path = tokens[1]
-	return
+	return req, path, nil
 }
 
-func send_response(connection io.Writer, request string, path string) (error os.Error) {
+// Send an HTTP response. The path is supposed to be sanitized already.
+func sendResponse(conn io.Writer, req string, path string) (err error) {
 	var file *os.File
-	var dir *os.Dir
+	var info os.FileInfo
 
-	if strings.ToUpper(request) != "GET" {
-		connection.Write([]byte("HTTP/1.0 500 Internal Server Error\r\nContent-Type: text/html\r\n\r\n<html><h1>500 Internal Server Error</h1></html>"))
-		error = os.NewError("only GET is implemented")
-		return
+	if strings.ToUpper(req) != "GET" {
+		conn.Write([]byte("HTTP/1.0 501 Not Implemented\r\nContent-Type: text/html\r\n\r\n<html><h1>501 Not Implemented</h1></html>"))
+		err = errors.New("only GET is implemented")
+		return err
 	}
 
-	dir, error = os.Lstat(path)
-	if error != nil || (!dir.IsRegular() && !dir.IsDirectory()) {
-		connection.Write([]byte("HTTP/1.0 400 Bad Request\r\nContent-Type: text/html\r\n\r\n<html><h1>400 Bad Request</h1></html>"))
-		return
+	info, err = os.Lstat(path)
+	if err != nil {
+		conn.Write([]byte("HTTP/1.0 404 Not Found\r\nContent-Type: text/html\r\n\r\n<html><h1>404 Not Found</h1></html>"))
+		return err
 	}
 
-	if dir.IsDirectory() {
-		file, _ = os.Open(path, os.O_RDONLY, 0)
-		names, _ := file.Readdirnames(-1)
-		connection.Write([]byte("HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n"))
+	if !info.Mode().IsRegular() && !info.Mode().IsDir() {
+		conn.Write([]byte("HTTP/1.0 400 Bad Request\r\nContent-Type: text/html\r\n\r\n<html><h1>400 Bad Request</h1></html>"))
+		err = errors.New("not a regular file or directory")
+		return err
+	}
+
+	if info.Mode().IsDir() {
+		file, _ = os.Open(path)           // TODO error handling
+		names, _ := file.Readdirnames(-1) // TODO error handling
+		conn.Write([]byte("HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n<html><h1>Directory Listing</h1>\n"))
 		for _, name := range names {
-			connection.Write([]byte(fmt.Sprintf("<a href=\"%s\">%s</a><br/>\n", name, name)))
+			conn.Write([]byte(fmt.Sprintf("<a href=\"%s\">%s</a><br/>\n", name, name)))
 		}
-		return
+		conn.Write([]byte("</html>"))
+		return nil
 	}
 
-	file, _ = os.Open(path, os.O_RDONLY, 0)
-	connection.Write([]byte("HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n\r\n"))
-	io.Copy(connection, file)
+	file, _ = os.Open(path) // TODO error handling
+	conn.Write([]byte("HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n\r\n"))
+	io.Copy(conn, file)
 	file.Close()
-	return
+	return nil
+}
+
+// Handle a connection by reading the request and sending the response.
+func handleConnection(conn io.ReadWriter) {
+	req, path, err := readRequest(conn)
+	path = filepath.Clean(path)
+	if err == nil {
+		sendResponse(conn, req, "./"+path)
+	}
+}
+
+// Run the web server.
+func main() {
+	listener, err := net.Listen("tcp", "localhost:8080")
+	check(err)
+
+	for {
+		conn, err := listener.Accept()
+		check(err)
+
+		err = conn.SetDeadline(time.Now().Add(timeout))
+		check(err)
+
+		handleConnection(conn)
+
+		err = conn.Close()
+		check(err)
+	}
 }
