@@ -2,6 +2,8 @@
 
 Rendering fractals concurrently. Maybe even in parallel if we're lucky?
 
+![Fractal](https://raw.githubusercontent.com/phf/go-snippets/master/confrac/fractal.png)
+
 ## Summary
 
 There's a neat little program in *The Go Programming Language* that
