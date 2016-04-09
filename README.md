@@ -9,8 +9,10 @@ so I had to update this file as well. I may eventually have time to
 
 - confrac/ A concurrent remix of the fractal program from
 *Donovan & Kernighan: The Go Programming Language*.
+- blah/ A silly net/http server that sometimes helps me
+debug things.
 
-## Ancient Snippets (already updated)
+## Ancient Snippets
 
 - freq/ Various clones of freq.c from *Kernighan & Pike: The Practice
 of Programming*.
