@@ -29,10 +29,16 @@ const html = `
 
 var t = template.Must(template.New("blah").Parse(html))
 var port = flag.String("p", "8080", "port to listen on")
+var verbose = flag.Bool("v", false, "print to stdout as well")
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	rs := pretty.Sprintf("%# v\n", r)
 	ws := pretty.Sprintf("%# v\n", w)
+
+	if *verbose {
+		log.Println(rs)
+		log.Println(ws)
+	}
 
 	data := map[string]interface{}{
 		"now":     time.Now(),
