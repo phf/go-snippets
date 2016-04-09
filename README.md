@@ -7,14 +7,14 @@ so I had to update this file as well. I may eventually have time to
 
 ## Recent Snippets
 
-- confrac/ A concurrent remix of the fractal program from
-*Donovan & Kernighan: The Go Programming Language*.
 - blah/ A silly net/http server that sometimes helps me
 debug things.
+- confrac/ A concurrent remix of the fractal program from
+*Donovan & Kernighan: The Go Programming Language*.
 
 ## Ancient Snippets
 
-- freq/ Various clones of freq.c from *Kernighan & Pike: The Practice
-of Programming*.
 - rmhttpd/ Two clones of my friend Raluca's twitter-sized web server.
 Not really twitter-sized in Go though.
+- freq/ Various clones of freq.c from *Kernighan & Pike: The Practice
+of Programming*.
